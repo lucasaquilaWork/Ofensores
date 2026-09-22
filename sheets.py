@@ -3,6 +3,8 @@ import gspread
 from datetime import datetime
 from google.oauth2.service_account import Credentials
 import math
+import streamlit as st
+import os
 
 ARQUIVO_CREDENCIAIS = "keys.json"
 NOME_PLANILHA = "Ofensores DB"
@@ -28,20 +30,37 @@ COLUNAS_CARREGAMENTO = [
     "DATA_IMPORTACAO",
 ]
 
-
-# ==========================================================
-# CONEXÃO
-# ==========================================================
-
 def conectar_google_sheets():
 
-    credentials = Credentials.from_service_account_file(
-        ARQUIVO_CREDENCIAIS,
-        scopes=SCOPES
+    # ======================================================
+    # LOCAL
+    # ======================================================
+
+    if os.path.exists("keys.json"):
+
+        credenciais = Credentials.from_service_account_file(
+            "keys.json",
+            scopes=SCOPES
+        )
+
+    # ======================================================
+    # STREAMLIT CLOUD
+    # ======================================================
+
+    else:
+
+        credenciais_dict = dict(
+            st.secrets["gcp_service_account"]
+        )
+
+        credenciais = Credentials.from_service_account_info(
+            credenciais_dict,
+            scopes=SCOPES
+        )
+
+    return gspread.authorize(
+        credenciais
     )
-
-    return gspread.authorize(credentials)
-
 
 def abrir_planilha():
 
